@@ -10,9 +10,8 @@ typedef struct s_info
 	t_options	*options;
 }				t_info;
 
-t_vector	ft_new_vector(t_point start, t_point end, t_options *options)
+t_vector	*ft_process_vector(t_vector *vector, t_options *options)
 {
-	t_vector	result;
 	float 		angle;
 	float	cosA;
 	float	sinA;
@@ -20,30 +19,35 @@ t_vector	ft_new_vector(t_point start, t_point end, t_options *options)
 	angle = options->angle * M_PI / 180.0;
     cosA = cos(angle);
     sinA = sin(angle);
-	result.delta.x = end.x - start.x;
-	result.delta.y = end.y - start.y;
-	result.start = start;
-	result.end.x = start.x + round(result.delta.x * cosA - result.delta.y * sinA);
-	result.end.y = start.y + round(result.delta.x * sinA + result.delta.y * cosA);
-	result.delta.x = abs(result.end.x - start.x);
-	result.delta.y = -abs(result.end.y - start.y);
-	result.delta.content = result.delta.x + result.delta.y;
-	if (start.x < result.end.x)
-		result.x_direction = 1;
+
+	vector->delta.x = vector->end.x - vector->start.x;
+	vector->delta.y = vector->end.y - vector->start.y;
+
+	vector->end.x = vector->start.x + round(vector->delta.x * cosA - vector->delta.y * sinA);
+	vector->end.y = vector->start.y + round(vector->delta.x * sinA + vector->delta.y * cosA);
+
+	vector->delta.x = abs(vector->end.x - vector->start.x);
+	vector->delta.y = -abs(vector->end.y - vector->start.y);
+
+	vector->delta.content = vector->delta.x + vector->delta.y;
+
+	if (vector->start.x < vector->end.x)
+		vector->x_direction = 1;
 	else
-		result.x_direction = -1;
-	if (start.y < result.end.y)
-		result.y_direction = 1;
+		vector->x_direction = -1;
+	if (vector->start.y < vector->end.y)
+		vector->y_direction = 1;
 	else
-		result.y_direction = -1;
-	return (result);
+		vector->y_direction = -1;
+	return (vector);
 }
 
 void	ft_render_info(t_info *info)
 {
 	info->window->current_img = !info->window->current_img;
+
 	ft_render_vector(&info->window->images[info->window->current_img],
-						info->vector,
+						ft_process_vector(info->vector, info->options),
 						info->options);
 
 	mlx_put_image_to_window(info->window->mlx,
@@ -132,7 +136,8 @@ static void	ft_render(void)
 		.y = 200,
 		.content = '1'};
 
-	vector = ft_new_vector(start, end, info.options);
+	vector.start = start;
+	vector.end = end;
 
 	info.vector = &vector;
 	info.window = window;
