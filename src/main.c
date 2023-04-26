@@ -13,34 +13,26 @@ typedef struct s_info
 t_vector	ft_new_vector(t_point start, t_point end, t_options *options)
 {
 	t_vector	result;
-	int			x, y;
 	float 		angle;
-
-	x = end.x;
-	y = end.y;
+	float	cosA;
+	float	sinA;
 
 	angle = options->angle * M_PI / 180.0;
-
-	printf("ANGLE : %f\n", angle);
-
-	x = x * cos(angle) - y * sin(angle);
-	y = end.x * sin(angle) + y * cos(angle);
-
-	end.x = x;
-	end.y = y;
-
+    cosA = cos(angle);
+    sinA = sin(angle);
+	result.delta.x = end.x - start.x;
+	result.delta.y = end.y - start.y;
 	result.start = start;
-	result.end = end;
-
-	result.delta.x = abs(end.x - start.x);
-	result.delta.y = -abs(end.y - start.y);
-
+	result.end.x = start.x + round(result.delta.x * cosA - result.delta.y * sinA);
+	result.end.y = start.y + round(result.delta.x * sinA + result.delta.y * cosA);
+	result.delta.x = abs(result.end.x - start.x);
+	result.delta.y = -abs(result.end.y - start.y);
 	result.delta.content = result.delta.x + result.delta.y;
-	if (start.x < end.x)
+	if (start.x < result.end.x)
 		result.x_direction = 1;
 	else
 		result.x_direction = -1;
-	if (start.y < end.y)
+	if (start.y < result.end.y)
 		result.y_direction = 1;
 	else
 		result.y_direction = -1;
@@ -53,6 +45,7 @@ void	ft_render_info(t_info *info)
 	ft_render_vector(&info->window->images[info->window->current_img],
 						info->vector,
 						info->options);
+
 	mlx_put_image_to_window(info->window->mlx,
 							info->window->id,
 							info->window->images[info->window->current_img].id,
@@ -127,7 +120,7 @@ static void	ft_render(void)
 		.column_gap = 0,
 		.x_offset = 0,
 		.y_offset = 0,
-		.angle = 0.0};
+		.angle = 90.0};
 
 	start = (t_point){
 		.x = 200,
